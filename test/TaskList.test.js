@@ -34,5 +34,14 @@ contract('TaskList', (accounts) => {
     console.log(result)
    })
 
+   it('toggles task completion', async () => {
+     const result = await this.taskList.toggleCompleted(1)
+     const task = await this.taskList.tasks(1)
+     assert.equal(task.completed, true)
+     const event = result.logs[0].args
+     assert.equal(event.id.toNumber(), 1)
+     assert.equal(event.completed, true)
+   })
+
 
 })
