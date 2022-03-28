@@ -29,26 +29,37 @@ App = {
     }
 
     if (typeof web3 !== 'undefined') {
-      App.web3Provider = web3.currentProvider
-      web3 = new Web3(web3.currentProvider)
+      App.web3Provider = window.ethereum
+      web3 = new Web3(window.ethereum)
     } else {
       window.alert("Please connect to Metamask.")
     }
 
 
     if (window.ethereum) {
-      window.web3 = new Web3(ethereum)
+      console.log("window.ethereum")
+      App.web3Provider = window.ethereum;
       try {
+        const selectedAccount = await window.ethereum
+          .request({
+            method: "eth_requestAccounts",
+          })
+          .then((accounts) => accounts[0])
+          .catch(() => {
+            throw Error("No account selected!");
+          });
 
-        await ethereum.enable()
+        window.userAddress = selectedAccount;
+        window.localStorage.setItem("userAddress", selectedAccount);
 
-        web3.eth.sendTransaction({
-          /* ... */
-        })
+        console.log(selectedAccount)
+        web3.eth.defaultAccount = web3.eth.accounts[0]
+        personal.unlockAccount(web3.eth.defaultAccount)
       } catch (error) {
 
       }
     } else if (window.web3) {
+      console.log("window.web3")
       App.web3Provider = web3.currentProvider
       window.web3 = new Web3(web3.currentProvider)
 
@@ -63,7 +74,7 @@ App = {
   loadAccount: async () => {
 
     App.account = web3.eth.accounts[0]
-    console.log(App.account)
+    console.log("Account: " + App.account)
   },
 
   loadContract: async () => {
@@ -114,6 +125,17 @@ App = {
 
       $newTaskTemplate.show()
     }
+  },
+
+  doTask: async () => {
+    App.setLoading(true)
+    const content = $('#newTask').val()
+    console.log(content)
+    const taskCount = await App.taskList.taskCount()
+    console.log(taskCount.toNumber())
+
+    await App.taskList.doTask(content)
+    window.location.reload()
   },
 
   setLoading: (boolean) => {
